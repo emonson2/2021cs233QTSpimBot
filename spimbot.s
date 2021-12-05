@@ -128,9 +128,6 @@ main:
         # If on same y level
         # jal step_up x 3
 
-        # If on same x level
-        # jal step_left x 3
-
         jal step_down
         jal step_down
         jal step_down
@@ -138,14 +135,14 @@ main:
         j loop
 
     dodge_shot_horiz:
+        # If on same x level
+        # jal step_right x 3
 
         jal step_right
         jal step_right
         jal step_right
 
         j loop
-
-        
 
     catch_up:
         # If losing by >20, start shooting reserved bullets very quickly
@@ -166,7 +163,6 @@ main:
         sub $sp, $sp, 4
         sw $s0, 0($sp)
 
-
         move $t0, $a0
         move $t1, $a1
         move $s0, $ra
@@ -181,29 +177,34 @@ main:
 
         lw $s0, 0($sp)
         add $sp, $sp, 4
+
         jr $ra
     
     ## FUNCTIONS THAT CONTROL THE SPIMBOT
 
     # Functions that get info on the spimbot
 
+    .globl getVelocity
     getVelocity:
         lw $v0, VELOCITY
 
         jr $ra
 
+    .globl getBotX
     getBotX:
         lw $v0, BOT_X
         srl $v0, $v0, 3
 
         jr $ra    
 
+    .globl getBotY
     getBotY:
         lw $v0, BOT_Y
         srl $v0, $v0, 3
 
         jr $ra
     
+    .globl getDirection
     getDirection:
         lw $v0, ANGLE
 
@@ -211,11 +212,13 @@ main:
 
     # Functions that get info on opponent
 
+    .globl getOpX
     getOpX:
         lw $v0, OTHER_X
 
         jr $ra
 
+    .globl getOpY
     getOpY:
         lw $v0, OTHER_Y
 
@@ -223,6 +226,7 @@ main:
 
     # Functions that slide the bot in a given direction until bonk
 
+    .globl slide_right
     slide_right:
         li $t1, 0
         sw $t1, ANGLE
@@ -237,6 +241,7 @@ main:
             sb $0, 0($t0)
             jr $ra
 
+    .globl slide_down
     slide_down:
         li $t1, 90
         sw $t1, ANGLE
@@ -250,7 +255,8 @@ main:
             beq $t1, 0, slide_down_loop
             sb $0, 0($t0)
             jr $ra
-        
+
+    .globl slide_left    
     slide_left:
         li $t1, 180
         sw $t1, ANGLE
@@ -264,7 +270,8 @@ main:
             beq $t1, 0, slide_left_loop
             sb $0, 0($t0)
             jr $ra
-        
+    
+    .globl slide_up
     slide_up:
         li $t1, 270
         sw $t1, ANGLE
@@ -281,6 +288,7 @@ main:
 
     # Functions that allow spimbot to step in a direction
 
+    .globl step_right
     step_right:
         li $t1, 0
         sw $t1, ANGLE
@@ -299,7 +307,7 @@ main:
             sw $t2, VELOCITY
             jr $ra
 
-
+    .globl step_down
     step_down:
         li $t1, 90
         sw $t1, ANGLE
@@ -318,6 +326,7 @@ main:
             sw $t2, VELOCITY
             jr $ra
 
+    .globl step_left
     step_left:
         li $t1, 180
         sw $t1, ANGLE
@@ -336,6 +345,7 @@ main:
             sw $t2, VELOCITY
             jr $ra
 
+    .globl step_up
     step_up:
         li $t1, 270
         sw $t1, ANGLE
@@ -356,6 +366,7 @@ main:
         
     # Functions that have spimbot load and shoot shoot
 
+    .globl load_bullet
     load_bullet:
         sub $sp, $sp, 4
         sw $s0, 0($sp)
@@ -385,10 +396,12 @@ main:
 
         jr $ra
 
-    shoot_bullets:
+    .globl shoot_bullet
+    shoot_bullet:
         sw $a0, SHOOT
         jr $ra
-        
+
+    .globl shoot_charged    
     shoot_charged:
         sw $a0, CHARGE_SHOT
 
