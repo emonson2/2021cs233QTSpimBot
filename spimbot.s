@@ -61,6 +61,7 @@ main:
     sw  $s0, 4($sp)
     sw  $s1, 8($sp)
     sw  $s2, 12($sp)
+    sw  $s3, 16($sp)
 
     # Construct interrupt mask
     li      $t4, 0
@@ -78,26 +79,6 @@ main:
     sw $t2, VELOCITY
         
     # YOUR CODE GOES HERE!!!!!!
-    
-    li $s0, 0
-    la $t1, puzzle_received
-    sb $0, 0($t1)
-    la $t2, puzzle
-    sw $t2, REQUEST_PUZZLE
-
-    loop_load:
-        lb $t2, 0($t1)
-        beq $t2, 0, loop_load
-        sb $0, 0($t1)
-
-    la $a0, puzzle
-    la $a1, solution
-    jal puzzle_solve
-    la $t0, solution
-    sw $t0, SUBMIT_SOLUTION
-    add $s0, $s0, 1
-
-    
 
     j loop
 
@@ -108,7 +89,7 @@ main:
     puzzle_solve:
         move $t0, $a0
         move $t1, $a1
-        move $s1, $ra
+        move $s2, $ra
 
         add $a0, $t0, 16
         add $a1, $t0, 0
@@ -116,7 +97,7 @@ main:
 
         jal count_disjoint_regions
 
-        add $ra, $s1, 0
+        add $ra, $s2, 0
         jr $ra
     
     ## FUNCTIONS THAT CONTROL THE SPIMBOT
@@ -276,7 +257,32 @@ main:
             sw $t2, VELOCITY
             jr $ra
         
-    # Functions that have spimbot shoot
+    # Functions that have spimbot load and shoot shoot
+
+    load_bullet:
+        move $s1, $ra
+
+        li $s0, 0
+        la $t1, puzzle_received
+        sb $0, 0($t1)
+        la $t2, puzzle
+        sw $t2, REQUEST_PUZZLE
+
+        load_loop:
+            lb $t2, 0($t1)
+            beq $t2, 0, load_loop
+            sb $0, 0($t1)
+
+        la $a0, puzzle
+        la $a1, solution
+        jal puzzle_solve
+
+        la $t0, solution
+        sw $t0, SUBMIT_SOLUTION
+        add $s0, $s0, 1
+
+        add $ra, $s1, 0
+        jr $ra
 
     shoot_bullets:
         sw $a0, SHOOT
