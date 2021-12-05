@@ -11,6 +11,9 @@ ANGLE_CONTROL           = 0xffff0018
 BOT_X                   = 0xffff0020
 BOT_Y                   = 0xffff0024
 
+OTHER_X                 = 0xffff00a0
+OTHER_Y                 = 0xffff00a4
+
 TIMER                   = 0xffff001c
 GET_MAP                 = 0xffff2008
 
@@ -32,9 +35,9 @@ RESPAWN_ACK             = 0xffff00f0  ## Respawn
 SHOOT                   = 0xffff2000
 CHARGE_SHOT             = 0xffff2004
 
-GET_OP_BULLETS          = 0xffff200c
-GET_MY_BULLETS          = 0xffff2010
-GET_AVAILABLE_BULLETS   = 0xffff2014
+OTHER_BULLETS           = 0xffff200c
+BOT_BULLETS             = 0xffff2010
+GET_AMMO                = 0xffff2014
 
 MMIO_STATUS             = 0xffff204c
 
@@ -89,15 +92,60 @@ main:
         # solve puzzles and load bullets
         # branch if equal x
         # branch if equal y 
-        # branch if losing by >20       
+        # branch if losing by >20
+        sub $sp, $sp, 16
+
+        sw $s0, 0($sp)
+        sw $s1, 4($sp)
+        sw $s2, 8($sp)
+        sw $s3, 12($sp)
+        sw $s4, 16($sp)
+
+        move $s0, $ra
+
+        default_loop:
+            # Check if on same x-level
+            jal getBotX
+            add $s1, $v0, $0
+            jal getOpX
+            add $s2, $v0, $0
+            sub $s1, $s1, $s2
+            beq $s1, $0, dodge_shot_horiz
+
+            # Check if on same y-level
+            jal getBotY
+            add $s1, $v0, $0
+            jal getOpY
+            add $s2, $v0, $0
+            sub $s1, $s1, $s2
+            beq $s2, $0, dodge_shot_vert
+
+            j default_loop
+
     
-    dodge_shot:
+    dodge_shot_vert:
         # If on same x/y as opponent, move to avoid getting hit and respawned
         # If on same y level
         # jal step_up x 3
 
         # If on same x level
         # jal step_left x 3
+
+        jal step_down
+        jal step_down
+        jal step_down
+
+        j loop
+
+    dodge_shot_horiz:
+
+        jal step_right
+        jal step_right
+        jal step_right
+
+        j loop
+
+        
 
     catch_up:
         # If losing by >20, start shooting reserved bullets very quickly
@@ -146,18 +194,30 @@ main:
 
     getBotX:
         lw $v0, BOT_X
-        mul $v0, $v0, 8
+        srl $v0, $v0, 3
 
         jr $ra    
 
     getBotY:
         lw $v0, BOT_Y
-        mul $v0, $v0, 8
+        srl $v0, $v0, 3
 
         jr $ra
     
     getDirection:
         lw $v0, ANGLE
+
+        jr $ra
+
+    # Functions that get info on opponent
+
+    getOpX:
+        lw $v0, OTHER_X
+
+        jr $ra
+
+    getOpY:
+        lw $v0, OTHER_Y
 
         jr $ra
 
