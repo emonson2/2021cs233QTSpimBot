@@ -80,6 +80,34 @@ main:
         
     # YOUR CODE GOES HERE!!!!!!
 
+    startup:
+        # The idea is to have the bot spin in a circle while loading bullets simultaneously
+        # Then shoots in a circle around to get a "baseline"
+        # From there, goes to default_state where the next action is determined
+
+    default_state:
+        # solve puzzles and load bullets
+        # branch if equal x
+        # branch if equal y 
+        # branch if losing by >20       
+    
+    dodge_shot:
+        # If on same x/y as opponent, move to avoid getting hit and respawned
+        # If on same y level
+        # jal step_up x 3
+
+        # If on same x level
+        # jal step_left x 3
+
+    catch_up:
+        # If losing by >20, start shooting reserved bullets very quickly
+        # Since bullets have already been loaded, can shoot rapidly
+
+    hunt_down:
+        # try to counter opponents moves
+        # Should only be executed if ahead in points
+        # This I am assuming is more complicated, so can implement if other parts aren't sufficient
+
     j loop
 
     ## FUNCTIONS THAT CONCERN PUZZLES 
@@ -87,9 +115,13 @@ main:
     # Solve Puzzle Function 
 
     puzzle_solve:
+        sub $sp, $sp, 4
+        sw $s0, 0($sp)
+
+
         move $t0, $a0
         move $t1, $a1
-        move $s2, $ra
+        move $s0, $ra
 
         add $a0, $t0, 16
         add $a1, $t0, 0
@@ -97,7 +129,10 @@ main:
 
         jal count_disjoint_regions
 
-        add $ra, $s2, 0
+        add $ra, $s0, 0
+
+        lw $s0, 0($sp)
+        add $sp, $sp, 4
         jr $ra
     
     ## FUNCTIONS THAT CONTROL THE SPIMBOT
@@ -111,11 +146,13 @@ main:
 
     getBotX:
         lw $v0, BOT_X
+        mul $v0, $v0, 8
 
         jr $ra    
 
     getBotY:
         lw $v0, BOT_Y
+        mul $v0, $v0, 8
 
         jr $ra
     
@@ -260,9 +297,10 @@ main:
     # Functions that have spimbot load and shoot shoot
 
     load_bullet:
-        move $s1, $ra
+        sub $sp, $sp, 4
+        sw $s0, 0($sp)
+        move $s0, $ra
 
-        li $s0, 0
         la $t1, puzzle_received
         sb $0, 0($t1)
         la $t2, puzzle
@@ -279,9 +317,12 @@ main:
 
         la $t0, solution
         sw $t0, SUBMIT_SOLUTION
-        add $s0, $s0, 1
 
-        add $ra, $s1, 0
+        add $ra, $s0, 0
+
+        lw $s0, 0($sp)
+        add $sp, $sp, 4
+
         jr $ra
 
     shoot_bullets:
